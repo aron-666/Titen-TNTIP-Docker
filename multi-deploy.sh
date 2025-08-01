@@ -505,16 +505,25 @@ EOF
     
     # 顯示部署結果摘要
     echo -e "${BLUE}======== 部署結果摘要 ========${NC}"
-    echo -e "${GREEN}成功部署: $success_count 個實例${NC}"
+    echo -e "${GREEN}成功部署並啟動: $success_count 個實例${NC}"
     if [[ $failed_count -gt 0 ]]; then
         echo -e "${RED}部署失敗: $failed_count 個實例${NC}"
     fi
     echo -e "${BLUE}=============================${NC}"
     
     if [[ $success_count -gt 0 ]]; then
-        echo -e "${GREEN}部署完成！您可以使用以下命令查看實例狀態:${NC}"
-        echo -e "${YELLOW}  $0 status${NC}"
-        echo -e "${YELLOW}  $0 logs${NC}"
+        echo -e "${GREEN}部署完成！已成功創建並啟動 $success_count 個 SOCKS5 代理實例。${NC}"
+        echo -e "${YELLOW}實例現在正在運行中，您可以使用以下命令管理它們:${NC}"
+        echo -e "${YELLOW}  查看狀態: $0 status${NC}"
+        echo -e "${YELLOW}  查看日誌: $0 logs${NC}"
+        echo -e "${YELLOW}  停止實例: $0 stop <實例名稱>${NC}"
+        echo -e "${YELLOW}  停止所有: $0 stop-all${NC}"
+        echo -e "${YELLOW}  啟動實例: $0 start <實例名稱>${NC}"
+        echo -e "${YELLOW}  啟動所有: $0 start-all${NC}"
+        echo
+        echo -e "${BLUE}注意: 如果您停止了實例，可以使用 start 命令重新啟動，無需重新部署。${NC}"
+    else
+        echo -e "${RED}部署失敗！沒有成功創建任何實例。請檢查配置文件和日誌。${NC}"
     fi
 }
 
@@ -679,6 +688,191 @@ stop_all_instances() {
     fi
 }
 
+# 啟動指定實例
+start_instance() {
+    local instance_name="$1"
+    
+    if [[ -z "$instance_name" ]]; then
+        echo -e "${RED}錯誤: 請指定要啟動的實例名稱${NC}"
+        echo -e "${YELLOW}用法: $0 start <實例名稱>${NC}"
+        return 1
+    fi
+    
+    echo -e "${BLUE}啟動實例: $instance_name${NC}"
+    
+    # 檢查容器是否存在
+    if ! docker ps -a --format "{{.Names}}" | grep -q "^${instance_name}$"; then
+        echo -e "${RED}錯誤: 容器 $instance_name 不存在${NC}"
+        echo -e "${YELLOW}請先使用 deploy-socks5 命令部署實例${NC}"
+        return 1
+    fi
+    
+    # 檢查容器是否已經在運行
+    if docker ps --format "{{.Names}}" | grep -q "^${instance_name}$"; then
+        echo -e "${YELLOW}容器 $instance_name 已經在運行${NC}"
+        return 0
+    fi
+    
+    # 啟動容器
+    if docker start "$instance_name" >/dev/null 2>&1; then
+        echo -e "${GREEN}實例 $instance_name 已啟動${NC}"
+        
+        # 等待容器啟動並檢查狀態
+        sleep 3
+        if docker ps --format "{{.Names}}" | grep -q "^${instance_name}$"; then
+            echo -e "${GREEN}✓ 容器 $instance_name 運行正常${NC}"
+        else
+            echo -e "${RED}✗ 容器 $instance_name 啟動失敗，請檢查日誌${NC}"
+            return 1
+        fi
+    else
+        echo -e "${RED}無法啟動實例 $instance_name${NC}"
+        return 1
+    fi
+}
+
+# 啟動所有已停止的實例
+start_all_instances() {
+    echo -e "${BLUE}啟動所有已停止的 TNTIP 實例${NC}"
+    
+    # 獲取所有已停止的 TNTIP 相關容器
+    local stopped_containers=$(docker ps -a -f status=exited -f name=tntip --format "{{.Names}}")
+    local stopped_tun2proxy=$(docker ps -a -f status=exited -f name=tun2proxy --format "{{.Names}}")
+    local stopped_socks=$(docker ps -a -f status=exited -f name=socks --format "{{.Names}}")
+    
+    # 合併所有停止的容器
+    local all_stopped="$stopped_containers $stopped_tun2proxy $stopped_socks"
+    all_stopped=$(echo "$all_stopped" | tr ' ' '\n' | grep -v '^$' | sort -u)
+    
+    if [[ -z "$all_stopped" ]]; then
+        echo -e "${YELLOW}沒有發現已停止的 TNTIP 相關容器${NC}"
+        return 0
+    fi
+    
+    echo -e "${YELLOW}發現以下已停止的容器:${NC}"
+    echo "$all_stopped"
+    echo
+    
+    read -p "確定要啟動所有已停止的實例嗎? (y/n): " confirm
+    if [[ $confirm != [yY] && $confirm != [yY][eE][sS] ]]; then
+        echo -e "${BLUE}操作已取消${NC}"
+        return 0
+    fi
+    
+    local success_count=0
+    local failed_count=0
+    
+    # 啟動所有停止的容器
+    echo -e "${BLUE}正在啟動容器...${NC}"
+    for container in $all_stopped; do
+        echo -e "${BLUE}啟動容器: $container${NC}"
+        if docker start "$container" >/dev/null 2>&1; then
+            echo -e "${GREEN}✓ $container 已啟動${NC}"
+            ((success_count++))
+        else
+            echo -e "${RED}✗ $container 啟動失敗${NC}"
+            ((failed_count++))
+        fi
+    done
+    
+    echo
+    echo -e "${BLUE}======== 啟動結果摘要 ========${NC}"
+    echo -e "${GREEN}成功啟動: $success_count 個實例${NC}"
+    if [[ $failed_count -gt 0 ]]; then
+        echo -e "${RED}啟動失敗: $failed_count 個實例${NC}"
+    fi
+    echo -e "${BLUE}=============================${NC}"
+    
+    if [[ $success_count -gt 0 ]]; then
+        echo -e "${GREEN}您可以使用以下命令查看實例狀態:${NC}"
+        echo -e "${YELLOW}  $0 status${NC}"
+    fi
+}
+
+# 重啟指定實例
+restart_instance() {
+    local instance_name="$1"
+    
+    if [[ -z "$instance_name" ]]; then
+        echo -e "${RED}錯誤: 請指定要重啟的實例名稱${NC}"
+        echo -e "${YELLOW}用法: $0 restart <實例名稱>${NC}"
+        return 1
+    fi
+    
+    echo -e "${BLUE}重啟實例: $instance_name${NC}"
+    
+    # 檢查容器是否存在
+    if ! docker ps -a --format "{{.Names}}" | grep -q "^${instance_name}$"; then
+        echo -e "${RED}錯誤: 容器 $instance_name 不存在${NC}"
+        return 1
+    fi
+    
+    # 重啟容器
+    if docker restart "$instance_name" >/dev/null 2>&1; then
+        echo -e "${GREEN}實例 $instance_name 已重啟${NC}"
+        
+        # 等待容器啟動並檢查狀態
+        sleep 3
+        if docker ps --format "{{.Names}}" | grep -q "^${instance_name}$"; then
+            echo -e "${GREEN}✓ 容器 $instance_name 運行正常${NC}"
+        else
+            echo -e "${RED}✗ 容器 $instance_name 重啟後未正常運行，請檢查日誌${NC}"
+            return 1
+        fi
+    else
+        echo -e "${RED}無法重啟實例 $instance_name${NC}"
+        return 1
+    fi
+}
+
+# 重啟所有運行中的實例
+restart_all_instances() {
+    echo -e "${BLUE}重啟所有運行中的 TNTIP 實例${NC}"
+    
+    # 獲取所有運行中的 TNTIP 相關容器
+    local running_containers=$(docker ps -f name=tntip -f name=tun2proxy -f name=socks --format "{{.Names}}")
+    
+    if [[ -z "$running_containers" ]]; then
+        echo -e "${YELLOW}沒有發現運行中的 TNTIP 相關容器${NC}"
+        return 0
+    fi
+    
+    echo -e "${YELLOW}發現以下運行中的容器:${NC}"
+    echo "$running_containers"
+    echo
+    
+    read -p "確定要重啟所有運行中的實例嗎? (y/n): " confirm
+    if [[ $confirm != [yY] && $confirm != [yY][eE][sS] ]]; then
+        echo -e "${BLUE}操作已取消${NC}"
+        return 0
+    fi
+    
+    local success_count=0
+    local failed_count=0
+    
+    # 重啟所有運行的容器
+    echo -e "${BLUE}正在重啟容器...${NC}"
+    local container_array=($running_containers)
+    for container in "${container_array[@]}"; do
+        echo -e "${BLUE}重啟容器: $container${NC}"
+        if docker restart "$container" >/dev/null 2>&1; then
+            echo -e "${GREEN}✓ $container 已重啟${NC}"
+            ((success_count++))
+        else
+            echo -e "${RED}✗ $container 重啟失敗${NC}"
+            ((failed_count++))
+        fi
+    done
+    
+    echo
+    echo -e "${BLUE}======== 重啟結果摘要 ========${NC}"
+    echo -e "${GREEN}成功重啟: $success_count 個實例${NC}"
+    if [[ $failed_count -gt 0 ]]; then
+        echo -e "${RED}重啟失敗: $failed_count 個實例${NC}"
+    fi
+    echo -e "${BLUE}=============================${NC}"
+}
+
 # 停止指定實例
 stop_instance() {
     local instance_name="$1"
@@ -724,11 +918,16 @@ show_menu() {
     echo "5. 部署 SOCKS5 多實例 (從 config.json)"
     echo "6. 查看所有實例狀態"
     echo "7. 查看實例日誌"
-    echo "8. 停止所有實例"
-    echo "9. 停止指定實例"
+    echo "8. 啟動所有已停止的實例"
+    echo "9. 啟動指定實例"
+    echo "10. 重啟所有運行中的實例"
+    echo "11. 重啟指定實例"
+    echo "12. 停止所有實例"
+    echo "13. 停止指定實例"
     echo "0. 退出"
     echo "========================================"
     echo -e "${BLUE}提示: 詳細配置說明請參考 docs/Socks5_Config_Readme.md${NC}"
+    echo -e "${YELLOW}部署完成後，實例會自動啟動。您可以使用啟動/停止功能管理已部署的實例。${NC}"
     echo "========================================"
 }
 
@@ -757,9 +956,23 @@ handle_menu_choice() {
             show_logs
             ;;
         8)
-            stop_all_instances
+            start_all_instances
             ;;
         9)
+            read -p "請輸入要啟動的實例名稱: " instance_name
+            start_instance "$instance_name"
+            ;;
+        10)
+            restart_all_instances
+            ;;
+        11)
+            read -p "請輸入要重啟的實例名稱: " instance_name
+            restart_instance "$instance_name"
+            ;;
+        12)
+            stop_all_instances
+            ;;
+        13)
             read -p "請輸入要停止的實例名稱: " instance_name
             stop_instance "$instance_name"
             ;;
@@ -778,7 +991,7 @@ handle_menu_choice() {
         read -n 1 -s -r -p "按任意鍵返回選單..."
         echo
         show_menu
-        read -p "請選擇操作 [0-9]: " choice
+        read -p "請選擇操作 [0-13]: " choice
         handle_menu_choice "$choice"
     fi
 }
@@ -792,7 +1005,7 @@ main() {
     if [[ $# -eq 0 ]]; then
         # 無參數時顯示選單
         show_menu
-        read -p "請選擇操作 [0-9]: " choice
+        read -p "請選擇操作 [0-13]: " choice
         handle_menu_choice "$choice"
     else
         case "$1" in
@@ -819,6 +1032,28 @@ main() {
                 ;;
             logs)
                 show_logs
+                ;;
+            start-all)
+                start_all_instances
+                ;;
+            start)
+                if [[ -z "$2" ]]; then
+                    echo -e "${RED}錯誤: 請指定要啟動的實例名稱${NC}"
+                    echo -e "${YELLOW}用法: $0 start <實例名稱>${NC}"
+                    exit 1
+                fi
+                start_instance "$2"
+                ;;
+            restart-all)
+                restart_all_instances
+                ;;
+            restart)
+                if [[ -z "$2" ]]; then
+                    echo -e "${RED}錯誤: 請指定要重啟的實例名稱${NC}"
+                    echo -e "${YELLOW}用法: $0 restart <實例名稱>${NC}"
+                    exit 1
+                fi
+                restart_instance "$2"
                 ;;
             stop-all)
                 stop_all_instances
@@ -851,7 +1086,7 @@ show_help() {
     echo "功能說明："
     echo "  本腳本用於管理 TNTIP 多實例部署，支援 Docker 環境檢查、SOCKS5 代理批量部署等功能。"
     echo
-    echo "指令："
+    echo "部署指令："
     echo "  check-docker [auto|cn]              檢查 Docker 環境 (auto=自動安裝, cn=中國源)"
     echo "  install-docker [cn]                 安裝 Docker (cn=使用中國源)"
     echo "  create-macvlan [子網] [網關] [接口] [網路名稱]"
@@ -859,8 +1094,14 @@ show_help() {
     echo "  deploy-http                         部署 HTTP 代理多實例"
     echo "  deploy-macvlan                      部署 MACVLAN 多實例"
     echo "  deploy-socks5 [配置文件]            部署 SOCKS5 多實例 (預設: config.json)"
+    echo
+    echo "實例管理指令："
     echo "  status                              查看所有實例狀態"
     echo "  logs                                查看實例日誌"
+    echo "  start-all                           啟動所有已停止的實例"
+    echo "  start <實例名稱>                    啟動指定實例"
+    echo "  restart-all                         重啟所有運行中的實例"
+    echo "  restart <實例名稱>                  重啟指定實例"
     echo "  stop-all                            停止所有實例"
     echo "  stop <實例名稱>                     停止指定實例"
     echo "  help                                顯示此幫助信息"
@@ -869,7 +1110,7 @@ show_help() {
     echo "  # 檢查 Docker 環境並自動安裝（使用中國源）"
     echo "  $0 check-docker cn"
     echo
-    echo "  # 使用預設配置文件部署 SOCKS5 實例"
+    echo "  # 使用預設配置文件部署 SOCKS5 實例（會自動啟動）"
     echo "  $0 deploy-socks5"
     echo
     echo "  # 使用自定義配置文件部署 SOCKS5 實例"
@@ -878,14 +1119,26 @@ show_help() {
     echo "  # 查看所有實例狀態"
     echo "  $0 status"
     echo
-    echo "  # 查看實例日誌"
-    echo "  $0 logs"
+    echo "  # 啟動指定的已停止實例"
+    echo "  $0 start socks_proxy_01"
+    echo
+    echo "  # 啟動所有已停止的實例"
+    echo "  $0 start-all"
+    echo
+    echo "  # 重啟指定實例"
+    echo "  $0 restart socks_proxy_01"
+    echo
+    echo "  # 重啟所有運行中的實例"
+    echo "  $0 restart-all"
     echo
     echo "  # 停止指定實例"
     echo "  $0 stop socks_proxy_01"
     echo
     echo "  # 停止所有實例"
     echo "  $0 stop-all"
+    echo
+    echo "  # 查看實例日誌"
+    echo "  $0 logs"
     echo
     echo "配置文件："
     echo "  詳細的 SOCKS5 配置說明請參考: docs/Socks5_Config_Readme.md"
@@ -894,6 +1147,9 @@ show_help() {
     echo "  - 所有操作都需要 root 權限，請使用 sudo 執行"
     echo "  - 首次使用前建議執行 'check-docker' 檢查環境"
     echo "  - SOCKS5 部署需要有效的 config.json 配置文件"
+    echo "  - 部署操作會創建並自動啟動新實例"
+    echo "  - 啟動/停止操作管理已部署的實例，不會重新創建容器"
+    echo "  - 重啟操作會保持實例配置不變"
 }
 
 # 執行主程序
