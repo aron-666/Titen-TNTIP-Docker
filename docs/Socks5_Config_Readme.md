@@ -52,3 +52,62 @@
 - 確保每個端口都是唯一的，避免衝突
 - SOCKS5 連線 URL 格式：`socks5://[username:password@]host:port`
 - 請確保您的 SOCKS5 代理服務器可以正常訪問
+
+## 實例管理
+
+### 部署 vs 啟動/停止
+
+**部署 (Deploy)**：
+- 創建新的容器並自動啟動
+- 部署完成後，實例會自動運行
+- 用於首次創建實例
+
+**啟動/停止 (Start/Stop)**：
+- 管理已部署的實例
+- 不會重新創建容器，只是啟動或停止現有容器
+- 用於日常實例管理
+
+### 實例管理指令
+
+```bash
+# 查看所有實例狀態
+sudo ./multi-deploy.sh status
+
+# 啟動指定實例
+sudo ./multi-deploy.sh start socks_proxy_01
+
+# 啟動所有已停止的實例
+sudo ./multi-deploy.sh start-all
+
+# 停止指定實例
+sudo ./multi-deploy.sh stop socks_proxy_01
+
+# 停止所有實例
+sudo ./multi-deploy.sh stop-all
+
+# 重啟指定實例
+sudo ./multi-deploy.sh restart socks_proxy_01
+
+# 重啟所有運行中的實例
+sudo ./multi-deploy.sh restart-all
+
+# 查看實例日誌
+sudo ./multi-deploy.sh logs
+```
+
+### 常見使用流程
+
+1. **首次部署**：
+   ```bash
+   sudo ./multi-deploy.sh deploy-socks5
+   ```
+   部署完成後，實例會自動啟動並運行。
+
+2. **日常管理**：
+   - 如果需要停止實例：`sudo ./multi-deploy.sh stop-all`
+   - 如果需要重新啟動：`sudo ./multi-deploy.sh start-all`
+   - 查看運行狀態：`sudo ./multi-deploy.sh status`
+
+3. **故障排除**：
+   - 查看日誌：`sudo ./multi-deploy.sh logs`
+   - 重啟問題實例：`sudo ./multi-deploy.sh restart <實例名稱>`
