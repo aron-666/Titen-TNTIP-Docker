@@ -1,0 +1,300 @@
+services:
+  # ========================================
+  # 第 1 組服務 (001)
+  # ========================================
+  tun2proxy-001:
+    volumes:
+      - /dev/net/tun:/dev/net/tun
+    sysctls:
+      - net.ipv6.conf.default.disable_ipv6=0
+    cap_add:
+      - NET_ADMIN
+    container_name: tun2proxy-001
+    image: ghcr.io/tun2proxy/tun2proxy-ubuntu:latest
+    command: --proxy socks5://user:pass@ip:port
+    restart: always
+
+  tntip-001:
+    image: aron666/tntip
+    container_name: tntip-001
+    environment:
+      - TNT_USER=user
+      - TNT_PASS=pass
+      - ADMIN_USER=${ADMIN_USER:-admin}
+      - ADMIN_PASS=${ADMIN_PASS:-admin}
+    volumes:
+      - "${DATA_DIR:-./data}/001:/app/UserData"
+    network_mode: "service:tun2proxy-001"
+    depends_on:
+      - tun2proxy-001
+    restart: always
+
+  # ========================================
+  # 第 2 組服務 (002)
+  # ========================================
+  tun2proxy-002:
+    volumes:
+      - /dev/net/tun:/dev/net/tun
+    sysctls:
+      - net.ipv6.conf.default.disable_ipv6=0
+    cap_add:
+      - NET_ADMIN
+    container_name: tun2proxy-002
+    image: ghcr.io/tun2proxy/tun2proxy-ubuntu:latest
+    command: --proxy socks5://user:pass@ip:port
+    restart: always
+
+  tntip-002:
+    image: aron666/tntip
+    container_name: tntip-002
+    environment:
+      - TNT_USER=user
+      - TNT_PASS=pass
+      - ADMIN_USER=${ADMIN_USER:-admin}
+      - ADMIN_PASS=${ADMIN_PASS:-admin}
+    volumes:
+      - "${DATA_DIR:-./data}/002:/app/UserData"
+    network_mode: "service:tun2proxy-002"
+    depends_on:
+      - tun2proxy-002
+    restart: always
+
+  # ========================================
+  # 第 3 組服務 (003)
+  # ========================================
+  tun2proxy-003:
+    volumes:
+      - /dev/net/tun:/dev/net/tun
+    sysctls:
+      - net.ipv6.conf.default.disable_ipv6=0
+    cap_add:
+      - NET_ADMIN
+    container_name: tun2proxy-003
+    image: ghcr.io/tun2proxy/tun2proxy-ubuntu:latest
+    command: --proxy socks5://user:pass@ip:port
+    restart: always
+
+  tntip-003:
+    image: aron666/tntip
+    container_name: tntip-003
+    environment:
+      - TNT_USER=user
+      - TNT_PASS=pass
+      - ADMIN_USER=${ADMIN_USER:-admin}
+      - ADMIN_PASS=${ADMIN_PASS:-admin}
+    volumes:
+      - "${DATA_DIR:-./data}/003:/app/UserData"
+    network_mode: "service:tun2proxy-003"
+    depends_on:
+      - tun2proxy-003
+    restart: always
+
+  # ========================================
+  # 第 4 組服務 (004)
+  # ========================================
+  tun2proxy-004:
+    volumes:
+      - /dev/net/tun:/dev/net/tun
+    sysctls:
+      - net.ipv6.conf.default.disable_ipv6=0
+    cap_add:
+      - NET_ADMIN
+    container_name: tun2proxy-004
+    image: ghcr.io/tun2proxy/tun2proxy-ubuntu:latest
+    command: --proxy socks5://user:pass@ip:port
+    restart: always
+
+  tntip-004:
+    image: aron666/tntip
+    container_name: tntip-004
+    environment:
+      - TNT_USER=user
+      - TNT_PASS=pass
+      - ADMIN_USER=${ADMIN_USER:-admin}
+      - ADMIN_PASS=${ADMIN_PASS:-admin}
+    volumes:
+      - "${DATA_DIR:-./data}/004:/app/UserData"
+    network_mode: "service:tun2proxy-004"
+    depends_on:
+      - tun2proxy-004
+    restart: always
+
+  # ========================================
+  # 第 5 組服務 (005)
+  # ========================================
+  tun2proxy-005:
+    volumes:
+      - /dev/net/tun:/dev/net/tun
+    sysctls:
+      - net.ipv6.conf.default.disable_ipv6=0
+    cap_add:
+      - NET_ADMIN
+    container_name: tun2proxy-005
+    image: ghcr.io/tun2proxy/tun2proxy-ubuntu:latest
+    command: --proxy socks5://user:pass@ip:port
+    restart: always
+
+  tntip-005:
+    image: aron666/tntip
+    container_name: tntip-005
+    environment:
+      - TNT_USER=user
+      - TNT_PASS=pass
+      - ADMIN_USER=${ADMIN_USER:-admin}
+      - ADMIN_PASS=${ADMIN_PASS:-admin}
+    volumes:
+      - "${DATA_DIR:-./data}/005:/app/UserData"
+    network_mode: "service:tun2proxy-005"
+    depends_on:
+      - tun2proxy-005
+    restart: always
+
+  # ========================================
+  # 第 6 組服務 (006)
+  # ========================================
+  tun2proxy-006:
+    volumes:
+      - /dev/net/tun:/dev/net/tun
+    sysctls:
+      - net.ipv6.conf.default.disable_ipv6=0
+    cap_add:
+      - NET_ADMIN
+    container_name: tun2proxy-006
+    image: ghcr.io/tun2proxy/tun2proxy-ubuntu:latest
+    command: --proxy socks5://user:pass@ip:port
+    restart: always
+
+  tntip-006:
+    image: aron666/tntip
+    container_name: tntip-006
+    environment:
+      - TNT_USER=user
+      - TNT_PASS=pass
+      - ADMIN_USER=${ADMIN_USER:-admin}
+      - ADMIN_PASS=${ADMIN_PASS:-admin}
+    volumes:
+      - "${DATA_DIR:-./data}/006:/app/UserData"
+    network_mode: "service:tun2proxy-006"
+    depends_on:
+      - tun2proxy-006
+    restart: always
+
+  # ========================================
+  # 第 7 組服務 (007)
+  # ========================================
+  tun2proxy-007:
+    volumes:
+      - /dev/net/tun:/dev/net/tun
+    sysctls:
+      - net.ipv6.conf.default.disable_ipv6=0
+    cap_add:
+      - NET_ADMIN
+    container_name: tun2proxy-007
+    image: ghcr.io/tun2proxy/tun2proxy-ubuntu:latest
+    command: --proxy socks5://user:pass@ip:port
+    restart: always
+
+  tntip-007:
+    image: aron666/tntip
+    container_name: tntip-007
+    environment:
+      - TNT_USER=user
+      - TNT_PASS=pass
+      - ADMIN_USER=${ADMIN_USER:-admin}
+      - ADMIN_PASS=${ADMIN_PASS:-admin}
+    volumes:
+      - "${DATA_DIR:-./data}/007:/app/UserData"
+    network_mode: "service:tun2proxy-007"
+    depends_on:
+      - tun2proxy-007
+    restart: always
+
+  # ========================================
+  # 第 8 組服務 (008)
+  # ========================================
+  tun2proxy-008:
+    volumes:
+      - /dev/net/tun:/dev/net/tun
+    sysctls:
+      - net.ipv6.conf.default.disable_ipv6=0
+    cap_add:
+      - NET_ADMIN
+    container_name: tun2proxy-008
+    image: ghcr.io/tun2proxy/tun2proxy-ubuntu:latest
+    command: --proxy socks5://user:pass@ip:port
+    restart: always
+
+  tntip-008:
+    image: aron666/tntip
+    container_name: tntip-008
+    environment:
+      - TNT_USER=user
+      - TNT_PASS=pass
+      - ADMIN_USER=${ADMIN_USER:-admin}
+      - ADMIN_PASS=${ADMIN_PASS:-admin}
+    volumes:
+      - "${DATA_DIR:-./data}/008:/app/UserData"
+    network_mode: "service:tun2proxy-008"
+    depends_on:
+      - tun2proxy-008
+    restart: always
+
+  # ========================================
+  # 第 9 組服務 (009)
+  # ========================================
+  tun2proxy-009:
+    volumes:
+      - /dev/net/tun:/dev/net/tun
+    sysctls:
+      - net.ipv6.conf.default.disable_ipv6=0
+    cap_add:
+      - NET_ADMIN
+    container_name: tun2proxy-009
+    image: ghcr.io/tun2proxy/tun2proxy-ubuntu:latest
+    command: --proxy socks5://user:pass@ip:port
+    restart: always
+
+  tntip-009:
+    image: aron666/tntip
+    container_name: tntip-009
+    environment:
+      - TNT_USER=user
+      - TNT_PASS=pass
+      - ADMIN_USER=${ADMIN_USER:-admin}
+      - ADMIN_PASS=${ADMIN_PASS:-admin}
+    volumes:
+      - "${DATA_DIR:-./data}/009:/app/UserData"
+    network_mode: "service:tun2proxy-009"
+    depends_on:
+      - tun2proxy-009
+    restart: always
+
+  # ========================================
+  # 第 10 組服務 (010)
+  # ========================================
+  tun2proxy-010:
+    volumes:
+      - /dev/net/tun:/dev/net/tun
+    sysctls:
+      - net.ipv6.conf.default.disable_ipv6=0
+    cap_add:
+      - NET_ADMIN
+    container_name: tun2proxy-010
+    image: ghcr.io/tun2proxy/tun2proxy-ubuntu:latest
+    command: --proxy socks5://user:pass@ip:port
+    restart: always
+
+  tntip-010:
+    image: aron666/tntip
+    container_name: tntip-010
+    environment:
+      - TNT_USER=user
+      - TNT_PASS=pass
+      - ADMIN_USER=${ADMIN_USER:-admin}
+      - ADMIN_PASS=${ADMIN_PASS:-admin}
+    volumes:
+      - "${DATA_DIR:-./data}/010:/app/UserData"
+    network_mode: "service:tun2proxy-010"
+    depends_on:
+      - tun2proxy-010
+    restart: always
