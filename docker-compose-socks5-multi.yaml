@@ -5,8 +5,9 @@ services:
   tun2proxy-001:
     volumes:
       - /dev/net/tun:/dev/net/tun
+    privileged: true
     sysctls:
-      - net.ipv6.conf.default.disable_ipv6=0
+      - net.ipv6.conf.default.disable_ipv6=1
     cap_add:
       - NET_ADMIN
     container_name: tun2proxy-001
@@ -35,8 +36,9 @@ services:
   tun2proxy-002:
     volumes:
       - /dev/net/tun:/dev/net/tun
+    privileged: true
     sysctls:
-      - net.ipv6.conf.default.disable_ipv6=0
+      - net.ipv6.conf.default.disable_ipv6=1
     cap_add:
       - NET_ADMIN
     container_name: tun2proxy-002
