@@ -108,6 +108,16 @@ sudo ./tntip.sh start -u your@email.com -p yourpassword --admin-user myuser --ad
 
 ---
 
+## 社群貢獻與感謝
+
+感謝社群成員 [@Amelia_Node](https://medium.com/@Amelia_Node) 撰寫的詳細教學文章：
+
+📝 **[Titan Browser Extension TNTIP 插件掛機獨家方案（Docker Compose版）— 適用於Linux端](https://medium.com/@Amelia_Node/titan-browser-extension-tntip-%E6%8F%92%E4%BB%B6%E6%8C%82%E6%9C%BA%E7%8B%AC%E5%AE%B6%E6%96%B9%E6%A1%88docker-compose%E7%89%88-%E9%80%82%E7%94%A8%E4%BA%8Elinux%E7%AB%AF-2acc331165c2)**
+
+這篇文章提供了額外的部署指南和使用心得，對於想要深入了解 TNTIP Docker 部署的用戶來說是很好的參考資料。
+
+---
+
 <div align="center">
 
 **感謝使用 TNTIP 挖礦服務管理腳本！**
